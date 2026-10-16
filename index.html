@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0b0b14">
+<title>Layar IPTV & Short Drama</title>
+<meta name="description" content="Pemutar premium: ribuan saluran langsung dan Short Drama.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<style>
+  :root{
+    --bg:#fdf9fb; --bg-2:#f6eef3; --card:#ffffff; --card-2:#faf5f8;
+    --text:#0f172a; --muted:#64748b; --faint:#94a3b8;
+    --accent:#bd3193; --accent-2:#0891b2;
+    --accent-soft:rgba(189,49,147,.12); --accent2-soft:rgba(8,145,178,.12);
+    --border:rgba(15,23,42,.08); --border-strong:rgba(15,23,42,.14);
+    --shadow:0 10px 30px -12px rgba(15,23,42,.18);
+    --glow:radial-gradient(600px 300px at 20% -10%, rgba(189,49,147,.18), transparent 60%),
+          radial-gradient(500px 260px at 90% 0%, rgba(8,145,178,.14), transparent 60%);
+  }
+  html[data-theme="dark"]{
+    --bg:#0b0b14; --bg-2:#12121f; --card:#171727; --card-2:#1d1d30;
+    --text:#f1f0f7; --muted:#9d9cb3; --faint:#6b6a82;
+    --accent:#e45ab5; --accent-2:#22c1e0;
+    --accent-soft:rgba(228,90,181,.14); --accent2-soft:rgba(34,193,224,.14);
+    --border:rgba(255,255,255,.08); --border-strong:rgba(255,255,255,.16);
+    --shadow:0 18px 50px -18px rgba(0,0,0,.7);
+    --glow:radial-gradient(700px 340px at 15% -10%, rgba(228,90,181,.20), transparent 60%),
+          radial-gradient(600px 300px at 90% -5%, rgba(34,193,224,.16), transparent 60%);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Red Hat Display',system-ui,-apple-system,sans-serif;
+    background:var(--bg); color:var(--text);
+    transition:background .35s ease, color .35s ease;
+    min-height:100vh; overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:var(--glow);
+  }
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  img{display:block}
+  ::selection{background:var(--accent);color:#fff}
+
+  .header{
+    position:sticky; top:0; z-index:50;
+    backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    background:color-mix(in srgb, var(--bg) 78%, transparent);
+    border-bottom:1px solid var(--border);
+  }
+  .header-inner{
+    max-width:1280px; margin:0 auto; padding:.85rem 1.25rem;
+    display:flex; align-items:center; gap:1rem;
+  }
+  .logo{display:flex;align-items:center;gap:.6rem;font-weight:900;font-size:1.2rem;letter-spacing:-.02em}
+  .logo-mark{
+    width:38px;height:38px;border-radius:11px;flex:0 0 auto;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:grid;place-items:center;color:#fff;
+    box-shadow:0 6px 18px -6px var(--accent);
+  }
+  .logo-mark svg{width:20px;height:20px}
+  .logo span b{background:linear-gradient(90deg,var(--accent),var(--accent-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .search-wrap{flex:1;max-width:520px;margin:0 auto;position:relative}
+  .search-wrap svg{position:absolute;left:.9rem;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--faint);pointer-events:none}
+  #search{
+    width:100%; padding:.7rem 1rem .7rem 2.6rem; border-radius:999px;
+    border:1px solid var(--border); background:var(--card); color:var(--text);
+    font-family:inherit; font-size:.95rem; outline:none; transition:.2s;
+  }
+  #search:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+  .header-actions{display:flex;align-items:center;gap:.5rem;margin-left:auto}
+  .icon-btn{
+    width:40px;height:40px;border-radius:12px;display:grid;place-items:center;
+    border:1px solid var(--border); background:var(--card); color:var(--text);
+    transition:.2s; position:relative;
+  }
+  .icon-btn:hover{transform:translateY(-2px);border-color:var(--accent);color:var(--accent)}
+  .icon-btn svg{width:18px;height:18px}
+
+  .wrap{max-width:1280px;margin:0 auto;padding:1.5rem 1.25rem 4rem}
+  .player-hero{
+    display:grid; grid-template-columns:1.6fr 1fr; gap:1.25rem;
+    margin-bottom:2rem; align-items:stretch;
+  }
+  @media (max-width:960px){ .player-hero{grid-template-columns:1fr} }
+  .player-frame{
+    position:relative; border-radius:20px; overflow:hidden;
+    background:#000; aspect-ratio:16/9; border:1px solid var(--border);
+    box-shadow:var(--shadow);
+  }
+  .player-frame video{width:100%;height:100%;object-fit:contain;background:#000}
+  .player-overlay{
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:.75rem; text-align:center;
+    padding:1.5rem; color:#e5e7eb; pointer-events:none;
+    background:radial-gradient(ellipse at center, rgba(20,20,35,.55), rgba(5,5,10,.9));
+  }
+  .player-overlay.hidden{display:none}
+  .player-overlay .big-icon{
+    width:72px;height:72px;border-radius:22px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;
+    box-shadow:0 12px 40px -8px var(--accent); animation:float 3s ease-in-out infinite;
+  }
+  .player-overlay .big-icon svg{width:32px;height:32px}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  .player-overlay h2{font-size:1.3rem;font-weight:800}
+  .player-overlay p{color:#9ca3af;max-width:380px;font-size:.92rem;line-height:1.5}
+  
+  .live-badge{
+    position:absolute; top:14px; left:14px; z-index:5;
+    display:flex; align-items:center; gap:.45rem; padding:.3rem .7rem;
+    border-radius:999px; background:rgba(0,0,0,.55); backdrop-filter:blur(8px);
+    color:#fff; font-size:.75rem; font-weight:700; letter-spacing:.08em;
+  }
+  .live-dot{width:8px;height:8px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 0 rgba(239,68,68,.7);animation:pulse 1.6s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.7)}70%{box-shadow:0 0 0 10px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+  .player-status{
+    position:absolute; bottom:14px; left:14px; right:14px; z-index:5;
+    padding:.55rem .9rem; border-radius:10px; font-size:.85rem;
+    background:rgba(0,0,0,.6); backdrop-filter:blur(8px); color:#e5e7eb;
+    display:none; align-items:center; gap:.5rem;
+  }
+  .player-status.show{display:flex}
+  .player-status.error{border-left:3px solid #ef4444}
+  .player-status.loading{border-left:3px solid var(--accent-2)}
+
+  .info-card{
+    background:var(--card); border:1px solid var(--border); border-radius:20px;
+    padding:1.4rem; display:flex; flex-direction:column; gap:1rem; box-shadow:var(--shadow);
+  }
+  .info-head{display:flex;gap:1rem;align-items:flex-start}
+  .ch-logo{
+    width:64px;height:64px;border-radius:16px;flex:0 0 auto;object-fit:cover;
+    background:var(--card-2); border:1px solid var(--border);
+  }
+  .ch-logo-fallback{
+    width:64px;height:64px;border-radius:16px;flex:0 0 auto;display:grid;place-items:center;
+    font-weight:900;font-size:1.4rem;color:#fff;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  }
+  #chLogoBox{width:64px;height:64px;border-radius:16px;flex:0 0 auto;overflow:hidden;display:grid;place-items:center;background:var(--card-2);border:1px solid var(--border)}
+  #chLogoBox .ch-logo{width:100%;height:100%;object-fit:cover;border:none;border-radius:0}
+  #chLogoBox .ch-logo-fallback{width:100%;height:100%;border:none;border-radius:0;font-size:1.4rem}
+  .ch-title{font-size:1.25rem;font-weight:800;line-height:1.2;letter-spacing:-.01em}
+  .ch-meta{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem}
+  
+  .pill{
+    font-size:.72rem;font-weight:700;letter-spacing:.04em;
+    padding:.25rem .6rem;border-radius:999px;
+    background:var(--accent-soft);color:var(--accent);
+    border:1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    display:inline-flex;align-items:center;gap:.3rem;
+  }
+  .pill.cyan{background:var(--accent2-soft);color:var(--accent-2);border-color:color-mix(in srgb, var(--accent-2) 30%, transparent)}
+  .pill.flag{padding:.2rem .35rem .2rem .25rem;gap:.35rem;background:var(--card-2);color:var(--text);border-color:var(--border)}
+  .pill.flag img{width:22px;height:16px;border-radius:3px;object-fit:cover}
+  .action-row{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:auto}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+    padding:.7rem .9rem;border-radius:12px;font-weight:700;font-size:.88rem;
+    transition:.2s; border:1px solid transparent;
+  }
+  .btn svg{width:16px;height:16px}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;box-shadow:0 8px 20px -8px var(--accent)}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 26px -8px var(--accent)}
+  .btn-ghost{background:var(--card-2);border-color:var(--border);color:var(--text)}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px)}
+  .btn.fav-on{background:var(--accent-soft);color:var(--accent);border-color:color-mix(in srgb, var(--accent) 40%, transparent)}
+
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1.5rem}
+  .stat{
+    background:var(--card);border:1px solid var(--border);border-radius:16px;
+    padding:1rem 1.1rem; display:flex; align-items:center; gap:.85rem;
+  }
+  .stat-icon{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);flex:0 0 auto}
+  .stat-icon.cyan{background:var(--accent2-soft);color:var(--accent-2)}
+  .stat-icon svg{width:20px;height:20px}
+  .stat b{display:block;font-size:1.3rem;font-weight:900;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums}
+  .stat span{font-size:.78rem;color:var(--muted);font-weight:600}
+
+  .filter-bar{margin-bottom:1.25rem;display:flex;flex-direction:column;gap:.85rem}
+  .tabs{display:flex;gap:.4rem;flex-wrap:wrap;align-items:center}
+  .tab{
+    padding:.55rem 1rem;border-radius:999px;font-weight:700;font-size:.85rem;
+    background:var(--card);border:1px solid var(--border);color:var(--muted);
+    transition:.2s; display:inline-flex;align-items:center;gap:.4rem;
+  }
+  .tab svg{width:15px;height:15px}
+  .tab:hover{color:var(--text);border-color:var(--border-strong)}
+  .tab.active{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;border-color:transparent;box-shadow:0 6px 16px -6px var(--accent)}
+  .chips{display:flex;gap:.45rem;overflow-x:auto;padding-bottom:.3rem;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{
+    flex:0 0 auto;padding:.45rem .9rem;border-radius:999px;font-size:.8rem;font-weight:600;
+    background:var(--card-2);border:1px solid var(--border);color:var(--muted);transition:.2s;
+    white-space:nowrap;
+  }
+  .chip:hover{color:var(--text)}
+  .chip.active{background:var(--accent-soft);color:var(--accent);border-color:color-mix(in srgb, var(--accent) 40%, transparent)}
+  .country-row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+  .country-row label{font-size:.8rem;color:var(--muted);font-weight:700;display:inline-flex;align-items:center;gap:.4rem}
+  .country-row label svg{width:15px;height:15px}
+  #countrySel{
+    padding:.55rem .9rem;border-radius:10px;border:1px solid var(--border);
+    background:var(--card);color:var(--text);font-family:inherit;font-size:.85rem;font-weight:600;
+    outline:none;max-width:240px;
+  }
+
+  .grid{
+    display:grid; gap:.85rem;
+    grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+  }
+  .ch-card{
+    background:var(--card);border:1px solid var(--border);border-radius:16px;
+    padding:.9rem; display:flex; gap:.8rem; align-items:center; cursor:pointer;
+    transition:transform .2s, border-color .2s, box-shadow .2s; position:relative;
+    animation:fadeUp .4s ease both;
+  }
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .ch-card:hover{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 12px 28px -14px var(--accent)}
+  .ch-card.playing{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+  .ch-card .logo-box{
+    width:52px;height:52px;border-radius:13px;flex:0 0 auto;overflow:hidden;
+    background:var(--card-2);border:1px solid var(--border);display:grid;place-items:center;
+  }
+  .ch-card .logo-box img{width:100%;height:100%;object-fit:cover}
+  .ch-card .logo-init{font-weight:900;font-size:1.05rem;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent-2));width:100%;height:100%;display:grid;place-items:center}
+  .ch-card .ch-info{min-width:0;flex:1}
+  .ch-card .ch-nm{font-weight:700;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ch-card .ch-sub{display:flex;align-items:center;gap:.4rem;margin-top:.25rem;font-size:.72rem;color:var(--muted);font-weight:600}
+  .ch-card .ch-sub img{width:18px;height:13px;border-radius:2px;object-fit:cover}
+  .fav-heart{
+    position:absolute; top:8px; right:8px; width:30px;height:30px;border-radius:9px;
+    display:grid;place-items:center;background:var(--card-2);border:1px solid var(--border);
+    color:var(--faint);transition:.2s; opacity:0;
+  }
+  .ch-card:hover .fav-heart, .fav-heart.on{opacity:1}
+  .fav-heart.on{color:#ef4444;border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.1)}
+  .fav-heart svg{width:14px;height:14px}
+  .load-more{
+    margin-top:1.5rem; display:flex; justify-content:center;
+  }
+
+  .empty-state{
+    text-align:center; padding:4rem 1rem; color:var(--muted);
+    background:var(--card);border:1px dashed var(--border-strong);border-radius:20px;
+  }
+  .empty-state svg{width:48px;height:48px;margin:0 auto 1rem;color:var(--faint)}
+  .empty-state h3{color:var(--text);margin-bottom:.4rem}
+  .skeleton{
+    background:linear-gradient(90deg, var(--card-2) 25%, color-mix(in srgb, var(--card-2) 60%, var(--border-strong)) 50%, var(--card-2) 75%);
+    background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:16px; height:78px;
+  }
+  @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+  .modal-backdrop{
+    position:fixed; inset:0; z-index:100; background:rgba(5,5,12,.6);
+    backdrop-filter:blur(6px); display:none; align-items:center; justify-content:center; padding:1rem;
+    animation:fadeIn .2s ease;
+  }
+  .modal-backdrop.show{display:flex}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .modal{
+    background:var(--card); border:1px solid var(--border-strong); border-radius:22px;
+    width:100%; max-width:560px; max-height:90vh; overflow-y:auto; padding:1.6rem;
+    box-shadow:0 30px 80px -20px rgba(0,0,0,.6); animation:pop .25s cubic-bezier(.2,.9,.3,1.2);
+  }
+  @keyframes pop{from{transform:scale(.92) translateY(10px);opacity:0}to{transform:none;opacity:1}}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem}
+  .modal-head h3{font-size:1.15rem;font-weight:800;display:flex;align-items:center;gap:.5rem}
+  .modal-head h3 svg{width:20px;height:20px;color:var(--accent)}
+  .field{margin-bottom:1rem}
+  .field label{display:block;font-size:.8rem;font-weight:700;color:var(--muted);margin-bottom:.4rem}
+  .preset-row{display:flex;gap:.4rem;flex-wrap:wrap}
+  .preset{
+    padding:.45rem .8rem;border-radius:9px;font-size:.8rem;font-weight:600;
+    background:var(--card-2);border:1px solid var(--border);color:var(--muted);transition:.2s;
+  }
+  .preset.active,.preset:hover{background:var(--accent-soft);color:var(--accent);border-color:color-mix(in srgb, var(--accent) 40%, transparent)}
+  .size-inputs{display:flex;gap:.6rem;align-items:center;margin-top:.6rem}
+  .size-inputs input{
+    width:90px;padding:.55rem .7rem;border-radius:9px;border:1px solid var(--border);
+    background:var(--bg);color:var(--text);font-family:inherit;font-weight:600;outline:none;
+  }
+  .size-inputs span{color:var(--faint)}
+  .check-row{display:flex;align-items:center;gap:.6rem;margin-top:.8rem;font-size:.88rem;font-weight:600;color:var(--muted)}
+  .check-row input{width:18px;height:18px;accent-color:var(--accent)}
+  .code-box{
+    margin-top:1rem; position:relative;
+  }
+  .code-box textarea{
+    width:100%; min-height:110px; padding:.9rem; border-radius:12px;
+    background:#0d0d18; color:#a5f3fc; border:1px solid var(--border);
+    font-family:ui-monospace,'SF Mono',Menlo,monospace; font-size:.78rem; line-height:1.6;
+    resize:vertical; outline:none;
+  }
+  .modal-actions{display:flex;gap:.6rem;margin-top:1rem}
+  .modal-actions .btn{flex:1}
+
+  .share-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.7rem;margin-bottom:1rem}
+  @media (max-width:480px){.share-grid{grid-template-columns:repeat(2,1fr)}}
+  .share-item{
+    display:flex;flex-direction:column;align-items:center;gap:.5rem;padding:1rem .5rem;
+    border-radius:14px;background:var(--card-2);border:1px solid var(--border);
+    font-size:.78rem;font-weight:700;color:var(--muted);transition:.2s;
+  }
+  .share-item:hover{transform:translateY(-3px);border-color:var(--accent);color:var(--accent)}
+  .share-item .si{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;color:#fff}
+  .share-item svg{width:20px;height:20px}
+  .si.wa{background:#25D366}.si.tg{background:#229ED9}.si.x{background:#111}.si.fb{background:#1877F2}.si.cp{background:linear-gradient(135deg,var(--accent),var(--accent-2))}
+
+  #toasts{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:.5rem;align-items:center}
+  .toast{
+    background:var(--text);color:var(--bg);padding:.7rem 1.2rem;border-radius:999px;
+    font-weight:700;font-size:.85rem;display:flex;align-items:center;gap:.5rem;
+    box-shadow:0 10px 30px -8px rgba(0,0,0,.4); animation:toastIn .3s ease;
+  }
+  .toast svg{width:16px;height:16px;color:#22c55e}
+  @keyframes toastIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  footer{
+    border-top:1px solid var(--border); margin-top:3rem; padding:2rem 1.25rem;
+    text-align:center; color:var(--muted); font-size:.85rem; line-height:1.8;
+  }
+  footer a{color:var(--accent);font-weight:700}
+
+  body.embed-mode .header, body.embed-mode .wrap, body.embed-mode footer{display:none}
+  .embed-stage{display:none}
+  body.embed-mode .embed-stage{
+    display:flex; flex-direction:column; width:100%; height:100vh; background:#000; color:#fff;
+  }
+  .embed-stage .player-frame{border-radius:0;border:none;flex:1;aspect-ratio:auto;box-shadow:none}
+  .embed-bar{
+    display:flex;align-items:center;gap:.6rem;padding:.5rem .9rem;
+    background:rgba(10,10,18,.92);backdrop-filter:blur(10px);font-size:.82rem;font-weight:700;
+    border-top:1px solid rgba(255,255,255,.08);
+  }
+  .embed-bar .live-badge{position:static;background:transparent;padding:0;backdrop-filter:none}
+  .embed-bar a{margin-left:auto;color:var(--accent-2);font-weight:700}
+
+  .mode-switch{display:inline-flex;background:var(--card);border:1px solid var(--border);border-radius:999px;padding:.3rem;margin-bottom:1.25rem;gap:.3rem}
+  .mode-switch button{padding:.55rem 1.2rem;border-radius:999px;font-weight:700;font-size:.88rem;color:var(--muted);display:inline-flex;align-items:center;gap:.45rem;transition:.2s}
+  .mode-switch button.active{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;box-shadow:0 6px 16px -6px var(--accent)}
+  .mode-switch svg{width:16px;height:16px}
+  .drama-note{background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);color:var(--accent);padding:1rem 1.2rem;border-radius:14px;font-size:.88rem;line-height:1.6;margin-bottom:1.25rem}
+  .drama-note code{background:rgba(0,0,0,.2);padding:.1rem .4rem;border-radius:5px;font-size:.82rem}
+  .drama-search{display:flex;gap:.6rem;margin-bottom:1.25rem}
+  .drama-search input{flex:1;padding:.8rem 1.1rem;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);font-family:inherit;font-size:.95rem;outline:none;transition:.2s}
+  .drama-search input:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+  .drama-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1rem}
+  .drama-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:.25s;animation:fadeUp .4s ease both}
+  .drama-card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 14px 30px -14px var(--accent)}
+  .drama-poster{aspect-ratio:3/4;background:var(--card-2);position:relative;overflow:hidden;display:grid;place-items:center}
+  .drama-poster img{width:100%;height:100%;object-fit:cover}
+  .drama-poster .ep-badge{position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.72);color:#fff;padding:.2rem .55rem;border-radius:999px;font-size:.7rem;font-weight:700}
+  .drama-info{padding:.7rem .8rem .9rem}
+  .drama-info .t{font-weight:700;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .drama-info .g{font-size:.72rem;color:var(--muted);margin-top:.2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  
+  .drama-detail{display:grid;grid-template-columns:200px 1fr;gap:1.25rem;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:1.25rem;margin-bottom:1.25rem}
+  .drama-detail img{width:100%;border-radius:14px;aspect-ratio:3/4;object-fit:cover;background:var(--card-2)}
+  .drama-detail h3{font-size:1.3rem;font-weight:800;margin-bottom:.35rem;letter-spacing:-.01em}
+  .drama-detail .syn{font-size:.88rem;color:var(--muted);line-height:1.6;margin:.5rem 0}
+  .ep-grid{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.5rem;max-height:280px;overflow-y:auto;padding-right:5px;}
+  .ep-chip{padding:.45rem .8rem;border-radius:10px;background:var(--card-2);border:1px solid var(--border);font-size:.82rem;font-weight:700;cursor:pointer;transition:.2s}
+  .ep-chip:hover,.ep-chip.playing{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .ep-chip.vip{color:#facc15;border-color:rgba(250,204,21,.45)}
+  .ep-chip.vip:hover,.ep-chip.vip.playing{background:#facc15;color:#1a1200;border-color:#facc15}
+  
+  @media (max-width:640px){
+    .drama-detail{grid-template-columns:1fr}
+    .logo span{display:none}
+    .stats{grid-template-columns:1fr 1fr}
+    .stat:last-child{grid-column:1/-1}
+    .action-row{grid-template-columns:1fr 1fr}
+    .ch-title{font-size:1.1rem}
+  }
+</style>
+</head>
+<body>
+
+<div class="embed-stage" id="embedStage">
+  <div class="player-frame">
+    <span class="live-badge" style="display:none"><span class="live-dot"></span>LIVE</span>
+    <video id="embedVideo" controls playsinline allowfullscreen></video>
+    <div class="player-status" id="embedStatus">Memuat siaran…</div>
+  </div>
+  <div class="embed-bar">
+    <span class="live-badge" id="embedLive"><span class="live-dot"></span>LIVE</span>
+    <span id="embedName">Siaran Langsung</span>
+    <a href="#" target="_blank" rel="noopener" id="embedFull">Buka di Layar IPTV</a>
+  </div>
+</div>
+
+<header class="header">
+  <div class="header-inner">
+    <a class="logo" href="./">
+      <span class="logo-mark"><i data-lucide="tv-2"></i></span>
+      <span>Layar<b>IPTV</b></span>
+    </a>
+    <div class="search-wrap">
+      <i data-lucide="search"></i>
+      <input id="search" type="search" placeholder="Cari nama saluran, kategori, atau negara…" autocomplete="off">
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="themeBtn" title="Ganti tema"><i data-lucide="moon"></i></button>
+      <a class="icon-btn" href="https://github.com/iptv-org/iptv" target="_blank" rel="noopener" title="Sumber data"><i data-lucide="github"></i></a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="mode-switch">
+    <button class="active" data-mode="tv"><i data-lucide="tv-2"></i>TV Live</button>
+    <button data-mode="drama"><i data-lucide="clapperboard"></i>Short Drama</button>
+  </div>
+
+  <section class="player-hero">
+    <div class="player-frame" id="playerFrame">
+      <span class="live-badge" id="liveBadge" style="display:none"><span class="live-dot"></span>LIVE</span>
+      <video id="player" controls playsinline allowfullscreen></video>
+      <div class="player-overlay" id="playerOverlay">
+        <div class="big-icon"><i data-lucide="play"></i></div>
+        <h2>Pilih saluran untuk mulai menonton</h2>
+        <p>Ribuan saluran langsung dari seluruh dunia. Klik kartu saluran di bawah, atau gunakan pencarian untuk menemukan favorit Anda.</p>
+      </div>
+      <div class="player-status" id="playerStatus"></div>
+    </div>
+
+    <div class="info-card" id="infoCard">
+      <div class="info-head">
+        <div id="chLogoBox"><div class="ch-logo-fallback">?</div></div>
+        <div>
+          <div class="ch-title" id="chTitle">Belum ada saluran dipilih</div>
+          <div class="ch-meta" id="chMeta">
+            <span class="pill">Siaran langsung</span>
+            <span class="pill cyan">Gratis</span>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:.85rem;color:var(--muted);line-height:1.55" id="chDesc">
+        Pilih saluran dari daftar untuk menampilkan informasi, tombol bagikan, dan kode sematkan.
+      </p>
+      <div class="action-row">
+        <button class="btn btn-ghost" id="favBtn"><i data-lucide="heart"></i><span>Favorit</span></button>
+        <button class="btn btn-ghost" id="m3uBtn"><i data-lucide="link-2"></i>Salin M3U</button>
+        <button class="btn btn-ghost" id="shareBtn"><i data-lucide="share-2"></i>Bagikan</button>
+        <button class="btn btn-primary" id="embedBtn"><i data-lucide="code-2"></i>Sematkan</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="stats" id="stats">
+    <div class="stat"><div class="stat-icon"><i data-lucide="tv"></i></div><div><b id="stChannels">—</b><span>Saluran tersedia</span></div></div>
+    <div class="stat"><div class="stat-icon cyan"><i data-lucide="globe-2"></i></div><div><b id="stCountries">—</b><span>Negara tercakup</span></div></div>
+    <div class="stat"><div class="stat-icon"><i data-lucide="layers"></i></div><div><b id="stCats">—</b><span>Kategori</span></div></div>
+  </section>
+
+  <section class="filter-bar">
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-tab="all"><i data-lucide="sparkles"></i>Semua</button>
+      <button class="tab" data-tab="fav"><i data-lucide="heart"></i>Favorit</button>
+      <button class="tab" data-tab="recent"><i data-lucide="history"></i>Baru ditonton</button>
+    </div>
+    <div class="chips" id="catChips"></div>
+    <div class="country-row">
+      <label><i data-lucide="map-pin"></i>Negara</label>
+      <select id="countrySel"><option value="">Semua negara</option></select>
+    </div>
+  </section>
+
+  <section class="grid" id="grid"></section>
+  <div class="empty-state hidden" id="emptyState" style="display:none">
+    <i data-lucide="search-x"></i>
+    <h3>Tidak ada saluran ditemukan</h3>
+    <p>Coba kata kunci lain atau ubah filter kategori / negara.</p>
+  </div>
+  <div class="load-more" id="loadMoreWrap" style="display:none">
+    <button class="btn btn-ghost" id="loadMoreBtn"><i data-lucide="chevrons-down"></i>Muat lebih banyak</button>
+  </div>
+
+  <section id="dramaArea" style="display:none">
+    <div class="drama-note" id="dramaNote" style="display:none">
+      Fitur <b>Short Drama</b> dipersembahkan dengan Sistem Smart Fetch. Jika server API asli sedang sibuk, Web akan beralih ke Mode Simulasi Premium agar Anda tetap bisa menikmati UI-nya!
+    </div>
+    <div class="drama-search">
+      <input id="dramaSearch" type="search" placeholder="Ketik kata kunci drama (mis. CEO, Istri, Revenge, Cinta)..." autocomplete="off">
+    </div>
+    <div class="drama-detail" id="dramaDetail" style="display:none">
+      <img id="ddCover" alt="">
+      <div>
+        <h3 id="ddTitle"></h3>
+        <p class="syn" id="ddSyn"></p>
+        <div class="ep-grid" id="epGrid"></div>
+      </div>
+    </div>
+    <div class="drama-grid" id="dramaGrid"></div>
+  </section>
+</main>
+
+<footer>
+  <p><b>LayarIPTV</b> — gabungan dua sumber siaran publik: <a href="https://github.com/iptv-org/iptv" target="_blank" rel="noopener">iptv-org/iptv</a> + <a href="https://github.com/Free-TV/IPTV" target="_blank" rel="noopener">Free-TV/IPTV</a>.</p>
+  <p style="margin-top:.3rem">Semua aliran disediakan apa adanya oleh pemilik aslinya. Halaman ini tidak menyimpan konten video apa pun.</p>
+</footer>
+
+<div class="modal-backdrop" id="embedModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3><i data-lucide="code-2"></i>Sematkan ke halaman Anda</h3>
+      <button class="icon-btn" data-close style="width:36px;height:36px"><i data-lucide="x"></i></button>
+    </div>
+    <div class="field">
+      <label>Ukuran pratetap</label>
+      <div class="preset-row" id="presets">
+        <button class="preset active" data-w="100%" data-h="450">Responsif (16:9)</button>
+        <button class="preset" data-w="640" data-h="360">640 × 360</button>
+        <button class="preset" data-w="854" data-h="480">854 × 480</button>
+        <button class="preset" data-w="1280" data-h="720">1280 × 720 (HD)</button>
+      </div>
+      <div class="size-inputs">
+        <input type="text" id="emW" value="100%">
+        <span>×</span>
+        <input type="text" id="emH" value="450">
+        <span style="font-size:.75rem">px</span>
+      </div>
+    </div>
+    <label class="check-row"><input type="checkbox" id="emAutoplay" checked> Putar otomatis (bisu)</label>
+    <div class="code-box">
+      <textarea id="emCode" readonly spellcheck="false"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-close>Tutup</button>
+      <button class="btn btn-primary" id="copyEmbedBtn"><i data-lucide="copy"></i>Salin kode</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="shareModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3><i data-lucide="share-2"></i>Bagikan saluran ini</h3>
+      <button class="icon-btn" data-close style="width:36px;height:36px"><i data-lucide="x"></i></button>
+    </div>
+    <div class="share-grid">
+      <a class="share-item" id="shWA" target="_blank" rel="noopener"><span class="si wa"><i data-lucide="message-circle"></i></span>WhatsApp</a>
+      <a class="share-item" id="shTG" target="_blank" rel="noopener"><span class="si tg"><i data-lucide="send"></i></span>Telegram</a>
+      <a class="share-item" id="shX" target="_blank" rel="noopener"><span class="si x"><i data-lucide="twitter"></i></span>X / Twitter</a>
+      <a class="share-item" id="shFB" target="_blank" rel="noopener"><span class="si fb"><i data-lucide="facebook"></i></span>Facebook</a>
+    </div>
+    <div class="code-box">
+      <label style="display:block;font-size:.8rem;font-weight:700;color:var(--muted);margin-bottom:.4rem">Tautan langsung</label>
+      <textarea id="shLink" readonly spellcheck="false" style="min-height:60px"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-close>Tutup</button>
+      <button class="btn btn-primary" id="copyShareBtn"><i data-lucide="copy"></i>Salin tautan</button>
+    </div>
+  </div>
+</div>
+<div id="toasts"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var $ = function(s){ return document.querySelector(s); };
+  var $$ = function(s){ return Array.prototype.slice.call(document.querySelectorAll(s)); };
+
+  function hashId(str){
+    var h = 5381, i;
+    for(i=0;i<str.length;i++){ h = ((h << 5) + h + str.charCodeAt(i)) >>> 0; }
+    return "c" + h.toString(36);
+  }
+  function esc(s){
+    var d = document.createElement("div"); d.textContent = s == null ? "" : String(s);
+    return d.innerHTML;
+  }
+  function toast(msg){
+    var t = document.createElement("div");
+    t.className = "toast";
+    t.innerHTML = '<i data-lucide="check-circle-2"></i>' + esc(msg);
+    $("#toasts").appendChild(t);
+    if(window.lucide) lucide.createIcons();
+    setTimeout(function(){ t.style.opacity="0"; t.style.transition="opacity .3s"; setTimeout(function(){ t.remove(); },320); }, 2200);
+  }
+  function copyText(txt, okMsg){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(function(){ toast(okMsg || "Disalin"); });
+    } else {
+      var ta = document.createElement("textarea");
+      ta.value = txt; document.body.appendChild(ta); ta.select();
+      try{ document.execCommand("copy"); toast(okMsg || "Disalin"); }catch(e){}
+      ta.remove();
+    }
+  }
+  function flagImg(code){
+    if(!code) return "";
+    var c = code.toLowerCase();
+    if(c === "uk") c = "gb";
+    if(!/^[a-z]{2}$/.test(c)) return "";
+    return "https://flagcdn.com/w40/" + c + ".png";
+  }
+
+  var COUNTRY_NAMES = {
+    AD:"Andorra",AE:"Uni Emirat Arab",AF:"Afghanistan",AG:"Antigua dan Barbuda",AI:"Anguilla",AL:"Albania",AM:"Armenia",AO:"Angola",AQ:"Antartika",AR:"Argentina",AS:"Samoa Amerika",AT:"Austria",AU:"Australia",AW:"Aruba",AX:"Kepulauan Åland",AZ:"Azerbaijan",
+    BA:"Bosnia dan Herzegovina",BB:"Barbados",BD:"Bangladesh",BE:"Belgia",BF:"Burkina Faso",BG:"Bulgaria",BH:"Bahrain",BI:"Burundi",BJ:"Benin",BL:"Saint Barthélemy",BM:"Bermuda",BN:"Brunei",BO:"Bolivia",BQ:"Karibia Belanda",BR:"Brasil",BS:"Bahama",BT:"Bhutan",BV:"Pulau Bouvet",BW:"Botswana",BY:"Belarus",BZ:"Belize",
+    CA:"Kanada",CC:"Kepulauan Cocos",CD:"Kongo (DRC)",CF:"Republik Afrika Tengah",CG:"Kongo",CH:"Swiss",CI:"Pantai Gading",CK:"Kepulauan Cook",CL:"Chili",CM:"Kamerun",CN:"Tiongkok",CO:"Kolombia",CR:"Kosta Rika",CU:"Kuba",CV:"Tanjung Verde",CW:"Curaçao",CX:"Pulau Natal",CY:"Siprus",CZ:"Ceko",
+    DE:"Jerman",DJ:"Jibuti",DK:"Denmark",DM:"Dominika",DO:"Republik Dominika",DZ:"Aljazair",
+    EC:"Ekuador",EE:"Estonia",EG:"Mesir",EH:"Sahara Barat",ER:"Eritrea",ES:"Spanyol",ET:"Ethiopia",
+    FI:"Finlandia",FJ:"Fiji",FK:"Kepulauan Falkland",FM:"Mikronesia",FO:"Kepulauan Faroe",FR:"Prancis",
+    ID:"Indonesia",IE:"Irlandia",IL:"Israel",IN:"India",IT:"Italia",JP:"Jepang",KR:"Korea Selatan",MY:"Malaysia",RU:"Rusia",TH:"Thailand",TR:"Turki",US:"Amerika Serikat",VN:"Vietnam"
+  };
+
+  function initialOf(ch){ return ((ch.name||"?").trim().charAt(0) || "?").toUpperCase(); }
+  function fallbackLogoEl(cls, ch){
+    var d = document.createElement("div"); d.className = cls; d.textContent = initialOf(ch); return d;
+  }
+  function logoImg(url, onFail){
+    var im = document.createElement("img");
+    im.loading = "lazy"; im.alt = ""; im.referrerPolicy = "no-referrer";
+    var tried = false;
+    im.onerror = function(){
+      if(!tried){
+        tried = true;
+        try{ im.src = "https://images.weserv.nl/?url=" + encodeURIComponent(url.replace(/^https?:\/\//i,"")); }
+        catch(e){ onFail(); }
+      } else { onFail(); }
+    };
+    im.src = url;
+    return im;
+  }
+
+  var S = {
+    channels: [],
+    filtered: [],
+    favorites: JSON.parse(localStorage.getItem("lip_favs") || "[]"),
+    recent: JSON.parse(localStorage.getItem("lip_recent") || "[]"),
+    selected: null,
+    tab: "all",
+    category: "",
+    country: "",
+    query: "",
+    visible: 60,
+    hls: null,
+    embed: false
+  };
+  function saveFavs(){ localStorage.setItem("lip_favs", JSON.stringify(S.favorites.slice(0,200))); }
+  function saveRecent(){ localStorage.setItem("lip_recent", JSON.stringify(S.recent.slice(0,12))); }
+  function isFav(url){ return S.favorites.some(function(f){ return f.url === url; }); }
+
+  function parseM3U(text, sumber){
+    var lines = text.split(/\r?\n/);
+    var out = [], meta = null;
+    var attrRe = /([a-zA-Z_][\w-]*)="([^"]*)"/g;
+    var SKIP_HOST = /(youtube\.com|youtu\.be|twitch\.tv|dailymotion\.com)/i; 
+    for(var i=0;i<lines.length;i++){
+      var line = lines[i].trim();
+      if(!line) continue;
+      if(line.indexOf("#EXTINF") === 0){
+        meta = {};
+        var m, colon = line.indexOf(":");
+        var rest = line.slice(colon+1);
+        while((m = attrRe.exec(rest)) !== null){ meta[m[1].toLowerCase()] = m[2]; }
+        var comma = rest.lastIndexOf(",");
+        meta.name = comma >= 0 ? rest.slice(comma+1).trim() : "Tanpa Nama";
+        meta.geo = /Ⓖ/.test(meta.name);
+        meta.sd = /Ⓢ/.test(meta.name);
+        meta.name = meta.name.replace(/[ⓈⒼⓎⓉ]\s*/g, "").trim();
+        meta.country = (meta["tvg-country"] || "").toUpperCase();
+        if(!meta.country){
+          var tid = meta["tvg-id"] || "";
+          var cm = tid.match(/\.([a-z]{2})@/i);
+          meta.country = cm ? cm[1].toUpperCase() : "";
+        }
+        if(!meta.country){
+          var cm2 = meta.name.match(/\(([A-Z]{2})\)\s*$/);
+          meta.country = cm2 ? cm2[1] : "";
+        }
+        if(sumber && sumber.grupKategori){
+          var gt = (meta["group-title"] || "Lainnya").trim();
+          if(gt === "Undefined" || !gt) gt = "Lainnya";
+          meta.category = gt.split(";")[0].trim() || "Lainnya";
+        } else {
+          meta.category = "Umum";
+        }
+        meta.logo = meta["tvg-logo"] || "";
+        meta.source = sumber ? sumber.nama : "";
+        var qm = meta.name.match(/\((\d{3,4}p)\)/);
+        meta.quality = qm ? qm[1] : (meta.sd ? "SD" : "");
+      } else if(line.indexOf("http") === 0 && meta){
+        if(SKIP_HOST.test(line)){ meta = null; continue; } 
+        meta.url = line;
+        meta.id = hashId(line + meta.name);
+        out.push(meta);
+        meta = null;
+      }
+    }
+    return out;
+  }
+
+  var SUMBER = [
+    { nama: "iptv-org", url: "https://iptv-org.github.io/iptv/index.m3u", grupKategori: true },
+    { nama: "Free-TV", url: "https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8", grupKategori: false }
+  ];
+  var CORS_PROXY = "https://api.allorigins.win/raw?url=";
+  var PROXY_BASE = "";
+  var ProxyLoader = null;
+  if(window.Hls && Hls.DefaultConfig && Hls.DefaultConfig.loader){
+    ProxyLoader = function(){ Hls.DefaultConfig.loader.apply(this, arguments); };
+    ProxyLoader.prototype = Object.create(Hls.DefaultConfig.loader.prototype);
+    ProxyLoader.prototype.constructor = ProxyLoader;
+    ProxyLoader.prototype.load = function(context, config, callbacks){
+      if(PROXY_BASE && context && context.url && String(context.url).indexOf(PROXY_BASE) !== 0){
+        context.url = PROXY_BASE + encodeURIComponent(context.url);
+      }
+      return Hls.DefaultConfig.loader.prototype.load.call(this, context, config, callbacks);
+    };
+  }
+
+  function ambilSatu(src){
+    return fetch(src.url).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
+      .catch(function(){
+        return fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(src.url))
+          .then(function(r){ if(!r.ok) throw new Error("proxy fail"); return r.text(); });
+      })
+      .then(function(text){ return parseM3U(text, src); });
+  }
+
+  function loadData(){
+    showSkeletons();
+    Promise.allSettled(SUMBER.map(ambilSatu)).then(function(hasil){
+      var semua = [];
+      var sumberBerhasil = 0;
+      hasil.forEach(function(h){ if(h.status === "fulfilled"){ semua = semua.concat(h.value); sumberBerhasil++; } });
+      if(!semua.length){
+        $("#grid").innerHTML = "";
+        $("#emptyState").style.display = "block";
+        $("#emptyState h3").textContent = "Gagal memuat daftar saluran";
+        $("#emptyState p").textContent = "Periksa koneksi internet Anda.";
+        return;
+      }
+      var urut = SUMBER.map(function(s){ return s.nama; });
+      semua.sort(function(a,b){ return urut.indexOf(a.source) - urut.indexOf(b.source); });
+      var seen = {}, merged = [];
+      semua.forEach(function(ch){ if(!seen[ch.url]){ seen[ch.url] = 1; merged.push(ch); } });
+      S.channels = merged;
+      buildFilters();
+      applyFilters();
+      updateStats();
+    });
+  }
+
+  function showSkeletons(){
+    var g = $("#grid"), html = "";
+    for(var i=0;i<12;i++) html += '<div class="skeleton"></div>';
+    g.innerHTML = html;
+  }
+
+  function updateStats(){
+    var countries = {}, cats = {};
+    S.channels.forEach(function(c){ if(c.country) countries[c.country]=1; if(c.category) cats[c.category]=1; });
+    $("#stChannels").textContent = S.channels.length.toLocaleString("id-ID");
+    $("#stCountries").textContent = Object.keys(countries).length;
+    $("#stCats").textContent = Object.keys(cats).length;
+  }
+
+  function buildFilters(){
+    var count = {};
+    S.channels.forEach(function(c){ count[c.category] = (count[c.category]||0)+1; });
+    var top = Object.keys(count).sort(function(a,b){ return count[b]-count[a]; }).slice(0,14);
+    var chips = $("#catChips");
+    chips.innerHTML = '<button class="chip active" data-cat="">Semua Kategori</button>' +
+      top.map(function(c){ return '<button class="chip" data-cat="'+esc(c)+'">'+esc(c)+' <span style="opacity:.6">'+count[c]+'</span></button>'; }).join("");
+    chips.querySelectorAll(".chip").forEach(function(b){
+      b.addEventListener("click", function(){
+        chips.querySelectorAll(".chip").forEach(function(x){ x.classList.remove("active"); });
+        b.classList.add("active");
+        S.category = b.dataset.cat; S.visible = 60; applyFilters();
+      });
+    });
+    
+    var cc = {};
+    S.channels.forEach(function(c){ if(c.country) cc[c.country]=1; });
+    var sel = $("#countrySel");
+    var opts = Object.keys(cc).map(function(code){
+      return { code: code, name: (COUNTRY_NAMES[code] || code) };
+    }).sort(function(a,b){ return a.name.localeCompare(b.name, "id"); });
+    opts.forEach(function(o){
+      var opt = document.createElement("option");
+      opt.value = o.code;
+      opt.textContent = o.code + " — " + o.name;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener("change", function(){ S.country = sel.value; S.visible = 60; applyFilters(); });
+  }
+
+  function applyFilters(){
+    var q = S.query.trim().toLowerCase();
+    var list;
+    if(S.tab === "fav") list = S.favorites.slice();
+    else if(S.tab === "recent") list = S.recent.slice();
+    else list = S.channels;
+
+    S.filtered = list.filter(function(c){
+      if(S.category && c.category !== S.category) return false;
+      if(S.country && c.country !== S.country) return false;
+      if(q){
+        var hay = (c.name + " " + (c.category||"") + " " + (c.country||"")).toLowerCase();
+        if(hay.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+    renderGrid();
+  }
+
+  function renderGrid(){
+    var g = $("#grid");
+    g.innerHTML = "";
+    if(!S.filtered.length){
+      $("#emptyState").style.display = "block";
+      $("#loadMoreWrap").style.display = "none";
+      return;
+    }
+    $("#emptyState").style.display = "none";
+    var slice = S.filtered.slice(0, S.visible);
+    var frag = document.createDocumentFragment();
+    slice.forEach(function(ch, idx){ frag.appendChild(makeCard(ch, idx)); });
+    g.appendChild(frag);
+    if(window.lucide) lucide.createIcons();
+    $("#loadMoreWrap").style.display = S.filtered.length > S.visible ? "flex" : "none";
+  }
+
+  function makeCard(ch, idx){
+    var card = document.createElement("div");
+    card.className = "ch-card";
+    if(S.selected && S.selected.url === ch.url) card.classList.add("playing");
+    card.style.animationDelay = Math.min(idx, 20) * 25 + "ms";
+
+    var logoBox = document.createElement("div");
+    logoBox.className = "logo-box";
+    if(ch.logo){
+      var im = logoImg(ch.logo, function(){
+        im.remove(); logoBox.appendChild(fallbackLogoEl("logo-init", ch));
+      });
+      logoBox.appendChild(im);
+    } else { logoBox.appendChild(fallbackLogoEl("logo-init", ch)); }
+
+    var info = document.createElement("div"); info.className = "ch-info";
+    var nm = document.createElement("div"); nm.className = "ch-nm"; nm.textContent = ch.name;
+    var sub = document.createElement("div"); sub.className = "ch-sub";
+    var flag = flagImg(ch.country);
+    if(flag){ var fi = document.createElement("img"); fi.src = flag; fi.alt=""; sub.appendChild(fi); }
+    var cc = document.createElement("span");
+    cc.textContent = (ch.country || "—") + " · " + (ch.category || "Lainnya");
+    sub.appendChild(cc);
+    info.appendChild(nm); info.appendChild(sub);
+
+    var heart = document.createElement("button");
+    heart.className = "fav-heart" + (isFav(ch.url) ? " on" : "");
+    heart.innerHTML = '<i data-lucide="heart" style="fill:'+(isFav(ch.url)?'currentColor':'none')+'"></i>';
+    heart.addEventListener("click", function(e){
+      e.stopPropagation();
+      toggleFavorite(ch);
+      heart.classList.toggle("on");
+      var ic = heart.querySelector("svg");
+      if(ic) ic.style.fill = heart.classList.contains("on") ? "currentColor" : "none";
+      if(S.tab === "fav") applyFilters();
+    });
+
+    card.appendChild(logoBox); card.appendChild(info); card.appendChild(heart);
+    card.addEventListener("click", function(){ playChannel(ch); });
+    return card;
+  }
+
+  function setStatus(el, msg, type){
+    if(!msg){ el.classList.remove("show","error","loading"); el.textContent=""; return; }
+    el.textContent = msg; el.className = "player-status show " + (type||"");
+  }
+
+  function playChannel(ch){
+    S.selected = ch;
+    $("#playerOverlay").classList.add("hidden");
+    $("#liveBadge").style.display = "inline-flex";
+    $("#chTitle").textContent = ch.name;
+
+    var box = $("#chLogoBox");
+    box.innerHTML = "";
+    if(ch.logo){
+      var im = logoImg(ch.logo, function(){
+        box.innerHTML = ""; box.appendChild(fallbackLogoEl("ch-logo-fallback", ch));
+      });
+      im.className = "ch-logo"; box.appendChild(im);
+    } else {
+      box.appendChild(fallbackLogoEl("ch-logo-fallback", ch));
+    }
+
+    var meta = $("#chMeta"); meta.innerHTML = "";
+    if(ch.country){
+      var p1 = document.createElement("span"); p1.className="pill flag";
+      var fl = flagImg(ch.country);
+      if(fl){ var fi=document.createElement("img"); fi.src=fl; p1.appendChild(fi); }
+      var t1=document.createElement("span"); t1.textContent=ch.country; p1.appendChild(t1);
+      meta.appendChild(p1);
+    }
+    if(ch.category){ var p2=document.createElement("span"); p2.className="pill cyan"; p2.textContent=ch.category; meta.appendChild(p2); }
+
+    var favBtn = $("#favBtn");
+    favBtn.classList.toggle("fav-on", isFav(ch.url));
+    favBtn.querySelector("span").textContent = isFav(ch.url) ? "Disukai" : "Favorit";
+
+    S.recent = S.recent.filter(function(r){ return r.url !== ch.url; });
+    S.recent.unshift(ch); saveRecent();
+    $$(".ch-card").forEach(function(c){ c.classList.remove("playing"); });
+
+    var video = $("#player"), status = $("#playerStatus");
+    if(S.hls){ try{ S.hls.destroy(); }catch(e){} S.hls = null; }
+    video.pause(); video.removeAttribute("src");
+    try{ video.load(); }catch(e){}
+    video.muted = true; 
+
+    function onOk(){
+      var p = video.play();
+      if(p && p.then){
+        p.then(function(){
+          if(video.muted){
+            setStatus(status, "Putar otomatis bisu — aktifkan suara di layar", "loading");
+            setTimeout(function(){ setStatus(status, ""); }, 3000);
+          } else setStatus(status, "");
+        }).catch(function(){ setStatus(status, "Tekan play di layar pemutar", "loading"); });
+      }
+    }
+    
+    function onFail(){
+       setStatus(status, "Gagal memuat video (format tidak didukung atau diblokir CORS)", "error");
+    }
+
+    setStatus(status, "Menghubungkan...", "loading");
+
+    if(/\.mp4(\?|$)/i.test(ch.url) || ch.url.indexOf("mux.dev") > 0) {
+       // Coba tangani fallback MP4 langsung
+       if(!window.Hls || !Hls.isSupported() || !ch.url.includes('.m3u8')){
+           video.src = ch.url;
+           video.addEventListener("loadedmetadata", onOk, { once: true });
+           return;
+       }
+    }
+
+    if(window.Hls && Hls.isSupported()){
+      var hls = new Hls({ maxBufferLength: 30 });
+      S.hls = hls;
+      hls.loadSource(ch.url);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, onOk);
+      hls.on(Hls.Events.ERROR, function(ev, data){
+         if(data.fatal) onFail();
+      });
+    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = ch.url;
+      video.addEventListener("loadedmetadata", onOk, { once: true });
+    } else {
+      onFail();
+    }
+  }
+
+  function toggleFavorite(ch){
+    var i = S.favorites.findIndex(function(f){ return f.url === ch.url; });
+    if(i >= 0){ S.favorites.splice(i,1); toast("Dihapus dari favorit"); }
+    else { S.favorites.unshift({ name:ch.name, url:ch.url, logo:ch.logo||"", category:ch.category||"", country:ch.country||"" }); toast("Ditambahkan ke favorit"); }
+    saveFavs();
+  }
+
+  var DRAMA_BASE = "https://api.sansekai.my.id/api/dramabox";
+  var DUMMY_VIDEO = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"; 
+  var DUMMY_DRAMAS = [
+    { id: "demo1", title: "Terlahir Kembali Menjadi CEO", cover: "https://placehold.co/300x400/1e293b/f43f5e?text=Reborn+CEO", genre: "Romance, Drama", episodes: 25, synopsis: "Kisah cinta seorang CEO yang kembali dari masa lalu untuk memperbaiki kesalahannya." },
+    { id: "demo2", title: "Cinta Terlarang Sang Alpha", cover: "https://placehold.co/300x400/1e293b/0ea5e9?text=Alpha+Love", genre: "Fantasy, Romance", episodes: 15, synopsis: "Cinta terlarang di antara dua klan werewolf yang bermusuhan ratusan tahun." },
+    { id: "demo3", title: "Pembalasan Dendam Istri Sah", cover: "https://placehold.co/300x400/1e293b/10b981?text=Wife+Revenge", genre: "Drama, Thriller", episodes: 30, synopsis: "Seorang istri yang dikhianati membalas dendam dengan cara elegan." },
+    { id: "demo4", title: "Rahasia Sang Milyarder", cover: "https://placehold.co/300x400/1e293b/a855f7?text=Billionaire", genre: "Romance, Mystery", episodes: 20, synopsis: "Milyarder tampan ini ternyata memiliki rahasia gelap." },
+    { id: "demo5", title: "Dinikahi Dewa Perang", cover: "https://placehold.co/300x400/1e293b/f59e0b?text=God+of+War", genre: "Action, Romance", episodes: 50, synopsis: "Prajurit terkuat di negeri ini mencari istri untuk menutupi identitasnya." }
+  ];
+
+  async function smartDramaFetch(url) {
+    try {
+      let r = await fetch(url);
+      if(r.ok) return await r.json();
+    } catch(e) {
+      console.warn("Direct fetch diblokir (CORS), mencoba Proxy...");
+    }
+
+    try {
+      let proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(url);
+      let r = await fetch(proxyUrl);
+      if(r.ok) return await r.json();
+    } catch(e) {
+       console.warn("Proxy juga gagal.");
+    }
+    
+    // Memberikan sinyal null bahwa pengambilan data asli 100% gagal
+    return null;
+  }
+
+  function normDrama(o){
+    return {
+      id: o.bookId || o.id || o.book_id || "demo",
+      title: o.bookName || o.title || o.name || "Tanpa Judul",
+      cover: o.coverWap || o.cover || o.poster || o.coverUrl || "https://placehold.co/300x400/1e293b/475569?text=Cover+Error",
+      genre: o.genre || o.category || "Drama",
+      episodes: o.chapterCount || o.episodes || o.totalEpisodes || o.total || 0,
+      synopsis: o.introduction || o.synopsis || o.desc || "Tidak ada sinopsis."
+    };
+  }
+
+  function dramaRender(list){
+    var g = $("#dramaGrid"); g.innerHTML = "";
+    if(!list || !list.length){
+      g.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><i data-lucide="clapperboard"></i><h3>Tidak ditemukan</h3><p>Coba kata kunci lain.</p></div>';
+      if(window.lucide) lucide.createIcons(); return;
+    }
+    list.slice(0, 60).forEach(function(d, i){
+      var card = document.createElement("div"); card.className = "drama-card";
+      card.style.animationDelay = Math.min(i, 20) * 30 + "ms";
+      var poster = '<div class="drama-poster">' +
+        (d.cover ? '<img src="'+esc(d.cover)+'" alt="" loading="lazy">' : '<i data-lucide="clapperboard"></i>') +
+        (d.episodes ? '<span class="ep-badge">'+d.episodes+' eps</span>' : '') + '</div>';
+      card.innerHTML = poster + '<div class="drama-info"><div class="t">'+esc(d.title)+'</div><div class="g">'+esc(d.genre)+'</div></div>';
+      card.addEventListener("click", function(){ dramaOpen(d); });
+      g.appendChild(card);
+    });
+    if(window.lucide) lucide.createIcons();
+  }
+
+  function dramaLoadHome(){
+    $("#dramaNote").style.display = "block";
+    $("#dramaDetail").style.display = "none";
+    $("#dramaGrid").innerHTML = '<div class="skeleton" style="height:260px;border-radius:16px"></div>'.repeat(8);
+    
+    // Karena /foryou sering eror, kita pakai default search "ceo" untuk mengisi beranda
+    smartDramaFetch(DRAMA_BASE + "/search?keyword=ceo").then(function(j){
+      if(j) {
+        var rawList = j.data?.list || j.data || [];
+        var cleanList = Array.isArray(rawList) ? rawList.map(normDrama) : [];
+        if(cleanList.length > 0) return dramaRender(cleanList);
+      }
+      // Jika data API tidak ada / diblokir, luncurkan Mode Simulasi
+      toast("API Sansekai offline. Menampilkan Mode Simulasi!");
+      dramaRender(DUMMY_DRAMAS);
+    });
+  }
+
+  function dramaOpen(d){
+    var det = $("#dramaDetail"); det.style.display = "grid";
+    $("#ddCover").src = d.cover || "";
+    $("#ddTitle").textContent = d.title;
+    $("#ddSyn").textContent = "Memuat daftar episode...";
+    $("#epGrid").innerHTML = "";
+    det.scrollIntoView({ behavior:"smooth", block:"nearest" });
+
+    smartDramaFetch(DRAMA_BASE + "/allepisode?id=" + encodeURIComponent(d.id)).then(function(j){
+       var eps = j?.data?.list || j?.data?.episodes || j?.data;
+       
+       // Fallback (Mode Simulasi Episode)
+       if(!eps || !Array.isArray(eps) || eps.length === 0) {
+          toast("Server mengunci episode. Menyiapkan episode simulasi.");
+          var totalEp = d.episodes > 0 ? d.episodes : 10;
+          eps = Array.from({length: totalEp}, (_, i) => ({ episode: i+1, url: DUMMY_VIDEO }));
+       }
+
+       $("#ddSyn").textContent = eps.length + " episode tersedia. " + d.synopsis;
+       var g = $("#epGrid"); g.innerHTML = "";
+       
+       eps.forEach(function(ep, i){
+          var num = ep.episode || ep.number || ep.chapterIndex || (i + 1);
+          var chip = document.createElement("button");
+          chip.className = "ep-chip";
+          chip.textContent = "Eps " + num;
+          chip.addEventListener("click", function(){
+            $$(".ep-chip").forEach(function(x){ x.classList.remove("playing"); });
+            chip.classList.add("playing");
+            dramaPlay(d, num, ep);
+          });
+          g.appendChild(chip);
+       });
+    });
+  }
+
+  function dramaPlay(d, num, epObj){
+    // Smart Extract URL
+    var url = epObj.playUrl || epObj.url || epObj.videoUrl || DUMMY_VIDEO;
+    
+    // Verifikasi URL Valid
+    if (!url || typeof url !== 'string' || !url.startsWith('http')) {
+        toast("Episode dikunci oleh penyedia layanan. Memainkan simulasi.");
+        url = DUMMY_VIDEO;
+    }
+
+    var ch = {
+      name: d.title + " — Eps " + num,
+      url: url,
+      logo: d.cover || "",
+      category: "Short Drama",
+      country: "CN"
+    };
+    
+    playChannel(ch);
+    $("#playerFrame").scrollIntoView({ behavior:"smooth", block:"start" });
+  }
+
+  function setMode(m){
+    $$(".mode-switch button").forEach(function(b){ b.classList.toggle("active", b.dataset.mode === m); });
+    var tv = (m === "tv");
+    $("#stats").style.display = tv ? "grid" : "none";
+    $(".filter-bar").style.display = tv ? "flex" : "none";
+    $("#grid").style.display = tv ? "grid" : "none";
+    $("#loadMoreWrap").style.display = tv ? "" : "none";
+    $("#dramaArea").style.display = tv ? "none" : "block";
+    if(m === "drama") dramaLoadHome();
+  }
+
+  function bindEvents(){
+    var curTheme = localStorage.getItem("lip_theme") || "dark";
+    document.documentElement.setAttribute("data-theme", curTheme);
+    $("#themeBtn").innerHTML = '<i data-lucide="'+(curTheme === "dark" ? "sun" : "moon")+'"></i>';
+
+    $("#themeBtn").addEventListener("click", function(){
+      var cur = document.documentElement.getAttribute("data-theme");
+      var nxt = cur === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", nxt);
+      localStorage.setItem("lip_theme", nxt);
+      this.innerHTML = '<i data-lucide="'+(nxt === "dark" ? "sun" : "moon")+'"></i>';
+      if(window.lucide) lucide.createIcons();
+    });
+
+    var tmr;
+    $("#search").addEventListener("input", function(){
+      clearTimeout(tmr);
+      var v = this.value;
+      tmr = setTimeout(function(){ S.query = v; S.visible = 60; applyFilters(); }, 180);
+    });
+
+    $$(".mode-switch button").forEach(function(b){
+      b.addEventListener("click", function(){ setMode(b.dataset.mode); });
+    });
+
+    var dramaTimer;
+    $("#dramaSearch").addEventListener("input", function(){
+      clearTimeout(dramaTimer);
+      var v = this.value.trim();
+      dramaTimer = setTimeout(function(){
+        if(!v){ dramaLoadHome(); return; }
+        
+        $("#dramaGrid").innerHTML = '<div class="skeleton" style="height:260px;border-radius:16px"></div>'.repeat(4);
+        smartDramaFetch(DRAMA_BASE + "/search?keyword=" + encodeURIComponent(v)).then(function(j){
+          if(j) {
+            var rawList = j.data?.list || j.data || [];
+            var cleanList = Array.isArray(rawList) ? rawList.map(normDrama) : [];
+            dramaRender(cleanList);
+          } else {
+             dramaRender([]); // Kosong jika gagal dicari
+          }
+        });
+      }, 500);
+    });
+  }
+
+  function boot(){
+    if(window.lucide) lucide.createIcons();
+    bindEvents();
+    loadData();
+  }
+
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+
+})();
+</script>
+</body>
+</html>
